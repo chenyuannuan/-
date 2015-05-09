@@ -235,15 +235,6 @@ public class GameView extends View {
 							.setMessage("玩家胜利").setPositiveButton("确定", null)
 							.show();
 				}
-				Point p = computerPlayer.start();
-				chessMap[p.x][p.y] = this.computerType;
-				if (this.hasWin(p.x, p.y)) {
-					// 电脑胜利
-					this.gameOver = true;
-					new AlertDialog.Builder(context).setTitle("提示")
-							.setMessage("电脑胜利").setPositiveButton("确定", null)
-							.show();
-				}
 			}
 		} else {
 			new AlertDialog.Builder(context)
