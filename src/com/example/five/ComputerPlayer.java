@@ -112,6 +112,8 @@ public class ComputerPlayer {
 		int[] dir = new int[4];
 		dir[0] = this.getHorCount(r, c, chessType);
 		dir[1] = this.getVerCount(r, c, chessType);
+		dir[2] = this.getSloRCount(r, c, chessType);
+		dir[3] = this.getSloLCount(r, c, chessType);
 		// 成五
 		for (int i = 0; i < dir.length; i++) {
 			if (dir[i] >= 5)
@@ -496,6 +498,211 @@ public class ComputerPlayer {
 					}
 					break;
 				}
+			}
+		}
+		return count;
+	}
+	/**
+	 * 斜向"\"
+	 */
+	private int getSloRCount(int r, int c, ChessType chessType) {
+		int count = 1;
+		int tr1 = r + 1;
+		int tc1 = c + 1;
+		int tr2 = r - 1;
+		int tc2 = c - 1;
+		for (int i = r + 1, j = c + 1; i < r + 5; i++, j++) {
+			if (i >= GameView.ROWS || j >= GameView.COLS) {
+				chessStatus[2] = ChessStatus.DIED;
+				break;
+			}
+			if (chessMap[i][j] == chessType) {
+				count++;
+				if (count >= 5)
+					return count;
+			} else {
+				chessStatus[2] = (chessMap[i][j] == ChessType.NONE) ? ChessStatus.ALIVE
+						: ChessStatus.DIED;
+				tr1 = i;
+				tc1 = j;
+				break;
+			}
+		}
+		for (int i = r - 1, j = c - 1; i > r - 5; i--, j--) {
+			if (i < 0 || j < 0) {
+				if (chessStatus[2] == ChessStatus.DIED && count < 5) {
+					return 0;
+				}
+				chessStatus[2] = ChessStatus.DIED;
+				break;
+			}
+			if (chessMap[i][j] == chessType) {
+				count++;
+				if (count >= 5) {
+					return count;
+				}
+			} else {
+				if (chessStatus[2] == ChessStatus.DIED) {
+					if (count < 5 && chessMap[i][j] != ChessType.NONE)
+						return 0;
+				} else {
+					chessStatus[2] = chessMap[i][j] == ChessType.NONE ? ChessStatus.ALIVE
+							: ChessStatus.DIED;
+					tr2 = i;
+					tc2 = j;
+					// 两头都活 看是否可以延伸
+					if (chessStatus[2] == ChessStatus.ALIVE) {
+						int tempCount1 = count, tempCount2 = count;
+						boolean isAlive1 = false, isAlive2 = false;
+						for (int p = tr1 + 1, q = tc1 + 1; p < tr1 + 5; p++, q++) {
+							if (p >= GameView.ROWS || q >= GameView.COLS) {
+								break;
+							}
+							if (chessMap[p][q] == chessType) {
+								tempCount1++;
+							} else {
+								isAlive1 = (chessMap[p][q] == ChessType.NONE) ? true
+										: false;
+								break;
+							}
+						}
+						for (int p = tr2 - 1, q = tc2 - 1; p > tr2 - 5; p--, q--) {
+							if (p < 0 || q < 0)
+								break;
+							if (chessMap[p][q] == chessType) {
+								tempCount2++;
+							} else {
+								isAlive2 = (chessMap[p][q] == ChessType.NONE) ? true
+										: false;
+								break;
+							}
+						}
+						if (tempCount1 == count && tempCount2 == count) {
+							break;
+						}
+						if (tempCount1 == tempCount2) {
+							count = tempCount1;
+							chessStatus[2] = (isAlive1 && isAlive2) ? ChessStatus.HALFALIVE
+									: ChessStatus.DIED;
+						} else {
+							count = (tempCount1 > tempCount2) ? tempCount1
+									: tempCount2;
+							if (count >= 5)
+								return 0;
+							if (tempCount1 > tempCount2) {
+								chessStatus[2] = isAlive1 ? ChessStatus.HALFALIVE
+										: ChessStatus.DIED;
+							} else {
+								chessStatus[2] = isAlive2 ? ChessStatus.HALFALIVE
+										: ChessStatus.DIED;
+							}
+						}
+					}
+				}
+				break;
+			}
+		}
+		return count;
+	}
+
+	/**
+	 * 斜向"/"
+	 */
+	private int getSloLCount(int r, int c, ChessType chessType) {
+		int count = 1;
+		int tr1 = r + 1;
+		int tc1 = c + 1;
+		int tr2 = r - 1;
+		int tc2 = c - 1;
+		for (int i = r + 1, j = c - 1; i < r + 5; i++, j--) {
+			if (i >= GameView.ROWS || j < 0) {
+				chessStatus[3] = ChessStatus.DIED;
+				break;
+			}
+			if (chessMap[i][j] == chessType) {
+				count++;
+				if (count >= 5)
+					return count;
+			} else {
+				chessStatus[3] = (chessMap[i][j] == ChessType.NONE) ? ChessStatus.ALIVE
+						: ChessStatus.DIED;
+				tr1 = i;
+				tc1 = j;
+				break;
+			}
+		}
+
+		for (int i = r - 1, j = c + 1; i > r - 5; i--, j++) {
+			if (i < 0 || j >= GameView.COLS) {
+				if (chessStatus[3] == ChessStatus.DIED && count < 5)
+					return 0;
+				chessStatus[3] = ChessStatus.DIED;
+				break;
+			}
+			if (chessMap[i][j] == chessType) {
+				count++;
+				if (count >= 5)
+					return count;
+			} else {
+				if (chessStatus[3] == ChessStatus.DIED) {
+					if (count < 5 && chessMap[i][j] != ChessType.NONE) {
+						return 0;
+					}
+				} else {
+					chessStatus[3] = (chessMap[i][j] == ChessType.NONE) ? ChessStatus.ALIVE
+							: ChessStatus.DIED;
+					tr2 = i;
+					tc2 = j;
+					if (chessStatus[3] == ChessStatus.ALIVE) {
+						int tempCount1 = count, tempCount2 = count;
+						boolean isAlive1 = false, isAlive2 = false;
+						for (int p = tr1 + 1, q = tc1 - 1; p < tr1 + 5; p++, q++) {
+							if (p >= GameView.ROWS || q < 0) {
+								break;
+							}
+							if (chessMap[p][q] == chessType) {
+								tempCount1++;
+							} else {
+								isAlive1 = chessMap[p][q] == ChessType.NONE ? true
+										: false;
+								break;
+							}
+						}
+						for (int p = tr2 - 1, q = tc1 + 1; p > tr2 - 5; p--, q++) {
+							if (p < 0 || q >= GameView.COLS) {
+								break;
+							}
+							if (chessMap[p][q] == chessType) {
+								tempCount2++;
+							} else {
+								isAlive2 = chessMap[p][q] == ChessType.NONE ? true
+										: false;
+								break;
+							}
+						}
+						if (tempCount1 == count && tempCount2 == count) {
+							break;
+						}
+						if (tempCount1 == tempCount2) {
+							count = tempCount1;
+							chessStatus[3] = (isAlive1 && isAlive2) ? ChessStatus.HALFALIVE
+									: ChessStatus.DIED;
+						} else {
+							count = (tempCount1 > tempCount2) ? tempCount1
+									: tempCount2;
+							if (count >= 5)
+								return 0;
+							if (tempCount1 > tempCount2) {
+								chessStatus[3] = isAlive1 ? ChessStatus.HALFALIVE
+										: ChessStatus.DIED;
+							} else {
+								chessStatus[3] = isAlive2 ? ChessStatus.HALFALIVE
+										: ChessStatus.DIED;
+							}
+						}
+					}
+				}
+				break;
 			}
 		}
 		return count;
